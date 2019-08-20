@@ -38,7 +38,16 @@ int main(int argc, char **argv){
   if (argc == 1) {
     printf("ANN search toolkit v 0.1c\n\n");
     printf("Options:\n");
-    
+    printf("\t-size <file>\n");
+    printf("\t\tvector size\n");
+    printf("\t-nnsize <file>\n");
+    printf("\t\tANN size\n");
+    printf("\t-tree <file>\n");
+    printf("\t\ttree number for annoy. default 10\n");
+    printf("\t-input <file>\n");
+    printf("\t\tinput <file> default from stdin\n");
+    printf("\t-output <file>\n");
+    printf("\t\toutput <file> default to stdout\n");
     return 0;
   }
 
@@ -48,10 +57,12 @@ int main(int argc, char **argv){
   int mode = MODE_INDEX;
   char input[256] = {0};
   char output[256] = {0};
+  int logtimes = 10000;
   if ((i = ArgPos((char *)"-size", argc, argv)) > 0) size = atoi(argv[i + 1]);
   if ((i = ArgPos((char *)"-nnsize", argc, argv)) > 0) nnsize = atoi(argv[i + 1]);
   if ((i = ArgPos((char *)"-tree", argc, argv)) > 0) tree = atoi(argv[i + 1]);
   if ((i = ArgPos((char *)"-mode", argc, argv)) > 0) mode = atoi(argv[i + 1]);
+  if ((i = ArgPos((char *)"-logtimes", argc, argv)) > 0) logtimes = atoi(argv[i + 1]);
   if ((i = ArgPos((char *)"-input", argc, argv)) > 0) strncpy(input, argv[i+1], 256);
   if ((i = ArgPos((char *)"-output", argc, argv)) > 0) strncpy(output, argv[i+1], 256);
 
@@ -88,6 +99,9 @@ int main(int argc, char **argv){
     }
     t.add_item(key, buff);
     n++;
+    if(n % logtimes == 0){
+        fprintf(stderr, "index %lld items.\n", n);
+    }
   }
   t.build(tree);
   
@@ -111,6 +125,10 @@ int main(int argc, char **argv){
 
       closest.clear(); 
       distances.clear();
+
+      if(n % logtimes == 0){
+        fprintf(stderr, "search %lld items.\n", i);
+    }
   }
 
   delete[] buff;
