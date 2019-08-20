@@ -58,11 +58,13 @@ int main(int argc, char **argv){
   char input[256] = {0};
   char output[256] = {0};
   int logtimes = 10000;
+  size_t search_k = (size_t)-1;
   if ((i = ArgPos((char *)"-size", argc, argv)) > 0) size = atoi(argv[i + 1]);
   if ((i = ArgPos((char *)"-nnsize", argc, argv)) > 0) nnsize = atoi(argv[i + 1]);
   if ((i = ArgPos((char *)"-tree", argc, argv)) > 0) tree = atoi(argv[i + 1]);
   if ((i = ArgPos((char *)"-mode", argc, argv)) > 0) mode = atoi(argv[i + 1]);
   if ((i = ArgPos((char *)"-logtimes", argc, argv)) > 0) logtimes = atoi(argv[i + 1]);
+  if ((i = ArgPos((char *)"-search_k", argc, argv)) > 0) search_k = atoi(argv[i + 1]);
   if ((i = ArgPos((char *)"-input", argc, argv)) > 0) strncpy(input, argv[i+1], 256);
   if ((i = ArgPos((char *)"-output", argc, argv)) > 0) strncpy(output, argv[i+1], 256);
 
@@ -109,7 +111,7 @@ int main(int argc, char **argv){
   std::vector<float> distances;
   
   for(long long i=0; i<n; i++){
-      t.get_nns_by_item(keys[i], nnsize, n, &closest, &distances);
+      t.get_nns_by_item(keys[i], nnsize, search_k, &closest, &distances);
       fprintf(fout, "%lld\t", keys[i]);
       for(int j=0; j<closest.size(); j++){
           if(j > 0) fputc(' ', fout);
