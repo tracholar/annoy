@@ -96,12 +96,12 @@ int main(int argc, char **argv){
   long long key = 0;
   std::vector<long long> keys;
   while(!feof(fin)){
-    scanf("%lld", &key);
+    fscanf(fin, "%lld", &key);
     keys.push_back(key);
     for(int i=0; i<size; i++){
-        scanf("%f", &buff[i]);
+        fscanf(fin, "%f", &buff[i]);
     }
-    t.add_item(key, buff);
+    t.add_item(n, buff);
     n++;
     if(n % logtimes == 0){
         fprintf(stderr, "index %lld items.\n", n);
@@ -113,11 +113,11 @@ int main(int argc, char **argv){
   std::vector<float> distances;
   
   for(long long i=0; i<n; i++){
-      t.get_nns_by_item(keys[i], nnsize, search_k, &closest, &distances);
+      t.get_nns_by_item(i, nnsize, search_k, &closest, &distances);
       fprintf(fout, "%lld\t", keys[i]);
       for(int j=0; j<closest.size(); j++){
           if(j > 0) fputc(' ', fout);
-          fprintf(fout, "%lld", closest[j]);
+          fprintf(fout, "%lld", keys[ closest[j] ]);
       }
         
       fputc( '\t', fout);
