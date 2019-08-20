@@ -44,6 +44,8 @@ int main(int argc, char **argv){
     printf("\t\tANN size\n");
     printf("\t-tree <file>\n");
     printf("\t\ttree number for annoy. default 10\n");
+    printf("\t-search_k <file>\n");
+    printf("\t\tsearch_k for annoy. default -1\n");
     printf("\t-input <file>\n");
     printf("\t\tinput <file> default from stdin\n");
     printf("\t-output <file>\n");
