@@ -98,12 +98,14 @@ int main(int argc, char **argv){
       t.get_nns_by_item(keys[i], nnsize, n, &closest, &distances);
       fprintf(fout, "%lld\t", keys[i]);
       for(int j=0; j<closest.size(); j++){
-          fprintf(fout, "%lld ", closest[j]);
+          if(j > 0) fputc(' ', fout);
+          fprintf(fout, "%lld", closest[j]);
       }
         
       fputc( '\t', fout);
       for(int j=0; j<distances.size(); j++){
-          fprintf(fout, "%g ", distances[j]);
+          if(j > 0) fputc(' ', fout);
+          fprintf(fout, "%g", distances[j]);
       }
       fputc('\n', fout);
 
