@@ -34,42 +34,19 @@ int ArgPos(char *str, int argc, char **argv) {
   return -1;
 }
 
-int main(int argc, char **argv){
-  int i;
-  if (argc == 1) {
-    printf("ANN search toolkit v 0.1c\n\n");
-    printf("Options:\n");
-    printf("\t-size <file>\n");
-    printf("\t\tvector size\n");
-    printf("\t-nnsize <file>\n");
-    printf("\t\tANN size\n");
-    printf("\t-tree <file>\n");
-    printf("\t\ttree number for annoy. default 10\n");
-    printf("\t-search_k <file>\n");
-    printf("\t\tsearch_k for annoy. default -1\n");
-    printf("\t-input <file>\n");
-    printf("\t\tinput <file> default from stdin\n");
-    printf("\t-output <file>\n");
-    printf("\t\toutput <file> default to stdout\n");
-    return 0;
-  }
 
-  int size = 0;
-  int nnsize = 100;
-  int tree = 10;
-  int mode = MODE_INDEX;
-  char input[256] = {0};
-  char output[256] = {0};
-  int logtimes = 10000;
-  size_t search_k = (size_t)-1;
-  if ((i = ArgPos((char *)"-size", argc, argv)) > 0) size = atoi(argv[i + 1]);
-  if ((i = ArgPos((char *)"-nnsize", argc, argv)) > 0) nnsize = atoi(argv[i + 1]);
-  if ((i = ArgPos((char *)"-tree", argc, argv)) > 0) tree = atoi(argv[i + 1]);
-  if ((i = ArgPos((char *)"-mode", argc, argv)) > 0) mode = atoi(argv[i + 1]);
-  if ((i = ArgPos((char *)"-logtimes", argc, argv)) > 0) logtimes = atoi(argv[i + 1]);
-  if ((i = ArgPos((char *)"-search_k", argc, argv)) > 0) search_k = atoi(argv[i + 1]);
-  if ((i = ArgPos((char *)"-input", argc, argv)) > 0) strncpy(input, argv[i+1], 256);
-  if ((i = ArgPos((char *)"-output", argc, argv)) > 0) strncpy(output, argv[i+1], 256);
+int size = 0;
+int nnsize = 100;
+int tree = 10;
+int mode = MODE_INDEX;
+char input[256] = {0};
+char output[256] = {0};
+char distance[256] = "euclidean";
+int logtimes = 10000;
+size_t search_k = (size_t)-1;
+
+template <typename T>
+void RunVectorIndex(){
 
   FILE * fin = stdin;
   FILE * fout = stdout;
@@ -88,8 +65,7 @@ int main(int argc, char **argv){
       }
   }
   
-
-  AnnoyIndex<long long, float, Angular, Kiss32Random> t = AnnoyIndex<long long, float, Angular, Kiss32Random>(size);
+  AnnoyIndex<long long, float, T, Kiss32Random> t = AnnoyIndex<long long, float, T, Kiss32Random>(size);
 
   // read data 
   float * buff = new float[size];
@@ -133,9 +109,49 @@ int main(int argc, char **argv){
       distances.clear();
 
       if((i+1) % logtimes == 0){
-        fprintf(stderr, "search %lld items.\n", i);
+        fprintf(stderr, "search %lld items.\n", i + 1);
     }
   }
 
   delete[] buff;
+}
+
+int main(int argc, char **argv){
+  int i;
+  if (argc == 1) {
+    printf("ANN search toolkit v 0.1c\n\n");
+    printf("Options:\n");
+    printf("\t-size <file>\n");
+    printf("\t\tvector size\n");
+    printf("\t-nnsize <file>\n");
+    printf("\t\tANN size\n");
+    printf("\t-tree <file>\n");
+    printf("\t\ttree number for annoy. default 10\n");
+    printf("\t-search_k <file>\n");
+    printf("\t\tsearch_k for annoy. default -1\n");
+    printf("\t-input <file>\n");
+    printf("\t\tinput <file> default from stdin\n");
+    printf("\t-output <file>\n");
+    printf("\t\toutput <file> default to stdout\n");
+    return 0;
+  }
+
+  
+  if ((i = ArgPos((char *)"-size", argc, argv)) > 0) size = atoi(argv[i + 1]);
+  if ((i = ArgPos((char *)"-nnsize", argc, argv)) > 0) nnsize = atoi(argv[i + 1]);
+  if ((i = ArgPos((char *)"-tree", argc, argv)) > 0) tree = atoi(argv[i + 1]);
+  if ((i = ArgPos((char *)"-mode", argc, argv)) > 0) mode = atoi(argv[i + 1]);
+  if ((i = ArgPos((char *)"-logtimes", argc, argv)) > 0) logtimes = atoi(argv[i + 1]);
+  if ((i = ArgPos((char *)"-search_k", argc, argv)) > 0) search_k = atoi(argv[i + 1]);
+  if ((i = ArgPos((char *)"-input", argc, argv)) > 0) strncpy(input, argv[i+1], 256);
+  if ((i = ArgPos((char *)"-output", argc, argv)) > 0) strncpy(output, argv[i+1], 256);
+  if ((i = ArgPos((char *)"-distance", argc, argv)) > 0) strncpy(distance, argv[i+1], 256);
+
+  if(!strcmp(distance, "angular")) {
+    RunVectorIndex<Angular>();
+  }else if(!strcmp(distance, "euclidean")){
+    RunVectorIndex<Euclidean>();
+  }else if(!strcmp(distance, "dot")){
+    RunVectorIndex<DotProduct>();
+  }
 }
