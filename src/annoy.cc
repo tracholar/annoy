@@ -133,6 +133,8 @@ int main(int argc, char **argv){
     printf("\t\tinput <file> default from stdin\n");
     printf("\t-output <file>\n");
     printf("\t\toutput <file> default to stdout\n");
+    printf("\t-distance <file>\n");
+    printf("\t\tdistance : angular,euclidean,dot default to euclidean\n");
     return 0;
   }
 

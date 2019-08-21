@@ -1,5 +1,5 @@
 CXX=g++
-CFLAGS = -lm -pthread -O3 -march=native -Wall -funroll-loops -Wno-unused-result
+CFLAGS = -lm -pthread -O3 -march=native -Wall -funroll-loops -Wno-unused-result -Wformat
 
 all: 
 	$(CXX) annoy.cc -o annoy $(CFLAGS)
