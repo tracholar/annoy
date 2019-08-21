@@ -80,8 +80,8 @@ int main(int argc, char **argv){
       }
   }
   if(output[0] != 0){
-      fin = fopen(output, "w");
-      if(fin == NULL){
+      fout = fopen(output, "w");
+      if(fout == NULL){
           fprintf(stderr, "ERROR: open file %s failed!\n", output);
           exit(1);
       }
@@ -93,10 +93,11 @@ int main(int argc, char **argv){
   // read data 
   float * buff = new float[size];
   long long n = 0;
-  long long key = 0;
-  std::vector<long long> keys;
+  char key[1024];
+  std::vector<char *> keys;
   while(!feof(fin)){
-    fscanf(fin, "%lld", &key);
+    int sn = fscanf(fin, "%s", key);
+    if(sn <= 0) break;
     keys.push_back(key);
     for(int i=0; i<size; i++){
         fscanf(fin, "%f", &buff[i]);
@@ -114,10 +115,10 @@ int main(int argc, char **argv){
   
   for(long long i=0; i<n; i++){
       t.get_nns_by_item(i, nnsize, search_k, &closest, &distances);
-      fprintf(fout, "%lld\t", keys[i]);
+      fprintf(fout, "%s\t", keys[i]);
       for(int j=0; j<closest.size(); j++){
           if(j > 0) fputc(' ', fout);
-          fprintf(fout, "%lld", keys[ closest[j] ]);
+          fprintf(fout, "%s", keys[ closest[j] ]);
       }
         
       fputc( '\t', fout);
@@ -130,7 +131,7 @@ int main(int argc, char **argv){
       closest.clear(); 
       distances.clear();
 
-      if(n % logtimes == 0){
+      if(i % logtimes == 0){
         fprintf(stderr, "search %lld items.\n", i);
     }
   }
