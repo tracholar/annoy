@@ -18,6 +18,7 @@
 #include<stddef.h>
 #include "kissrandom.h"
 #include "annoylib.h"
+#include<string>
 #define MODE_INDEX 1 
 #define MODE_SEARCH 2
 
@@ -94,11 +95,11 @@ int main(int argc, char **argv){
   float * buff = new float[size];
   long long n = 0;
   char key[1024];
-  std::vector<char *> keys;
+  std::vector<std::string> keys;
   while(!feof(fin)){
     int sn = fscanf(fin, "%s", key);
     if(sn <= 0) break;
-    keys.push_back(key);
+    keys.push_back(std::string(key));
     for(int i=0; i<size; i++){
         fscanf(fin, "%f", &buff[i]);
     }
@@ -115,10 +116,10 @@ int main(int argc, char **argv){
   
   for(long long i=0; i<n; i++){
       t.get_nns_by_item(i, nnsize, search_k, &closest, &distances);
-      fprintf(fout, "%s\t", keys[i]);
+      fprintf(fout, "%s\t", keys[i].c_str());
       for(int j=0; j<closest.size(); j++){
           if(j > 0) fputc(' ', fout);
-          fprintf(fout, "%s", keys[ closest[j] ]);
+          fprintf(fout, "%s", keys[ closest[j] ].c_str());
       }
         
       fputc( '\t', fout);
@@ -131,7 +132,7 @@ int main(int argc, char **argv){
       closest.clear(); 
       distances.clear();
 
-      if(i % logtimes == 0){
+      if((i+1) % logtimes == 0){
         fprintf(stderr, "search %lld items.\n", i);
     }
   }
