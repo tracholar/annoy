@@ -43,7 +43,49 @@ char input[256] = {0};
 char output[256] = {0};
 char distance[256] = "euclidean";
 int logtimes = 10000;
+int groupbykey = 0;  // 是否按照key分别建立索引
 size_t search_k = (size_t)-1;
+
+
+template <typename T>
+void OutputSimilar(AnnoyIndex<long long, float, T, Kiss32Random> &t, // 索引
+  std::vector<std::string> &keys,  // 每个id实际对应的key，用于输出
+  FILE * fout,                       // 输出文件
+  char* groupkey                    // 该组的key
+  ){
+  t.build(tree);
+  
+  std::vector<long long> closest;
+  std::vector<float> distances;
+  long long n = keys.size();
+  
+  for(long long i=0; i<n; i++){
+      t.get_nns_by_item(i, nnsize, search_k, &closest, &distances);
+      if(groupbykey){
+        fprintf(fout, "%s\t", groupkey);
+      }
+      fprintf(fout, "%s\t", keys[i].c_str());
+      for(int j=0; j<closest.size(); j++){
+          if(j > 0) fputc(' ', fout);
+          fprintf(fout, "%s", keys[ closest[j] ].c_str());
+      }
+        
+      fputc( '\t', fout);
+      for(int j=0; j<distances.size(); j++){
+          if(j > 0) fputc(' ', fout);
+          fprintf(fout, "%g", distances[j]);
+      }
+      fputc('\n', fout);
+
+      closest.clear(); 
+      distances.clear();
+
+      if((i+1) % logtimes == 0){
+        fprintf(stderr, "search %lld items.\n", i + 1);
+    }
+  }
+}
+
 
 template <typename T>
 void RunVectorIndex(){
@@ -65,14 +107,32 @@ void RunVectorIndex(){
       }
   }
   
+
   AnnoyIndex<long long, float, T, Kiss32Random> t = AnnoyIndex<long long, float, T, Kiss32Random>(size);
 
   // read data 
   float * buff = new float[size];
   long long n = 0;
   char key[1024];
+  char groupkey[1024], oldgroupkey[1024] = {0};
   std::vector<std::string> keys;
   while(!feof(fin)){
+    if(groupbykey) {
+      int sn = fscanf(fin, "%s", groupkey);
+      if(sn <= 0) break;
+      if(oldgroupkey[0] == 0) {
+        strcpy(oldgroupkey, groupkey);  // 第一条记录
+      }
+      if(strcmp(groupkey, oldgroupkey)) { // 如果是新的key
+        OutputSimilar(t, keys, fout, oldgroupkey);
+        t.unload();
+        keys.clear();
+        n = 0;
+
+        fprintf(stderr, "finished index group %s, start new group %s.\n", oldgroupkey, groupkey);
+        strcpy(oldgroupkey, groupkey);
+      }
+    }
     int sn = fscanf(fin, "%s", key);
     if(sn <= 0) break;
     keys.push_back(std::string(key));
@@ -85,33 +145,11 @@ void RunVectorIndex(){
         fprintf(stderr, "index %lld items.\n", n);
     }
   }
-  t.build(tree);
-  
-  std::vector<long long> closest;
-  std::vector<float> distances;
-  
-  for(long long i=0; i<n; i++){
-      t.get_nns_by_item(i, nnsize, search_k, &closest, &distances);
-      fprintf(fout, "%s\t", keys[i].c_str());
-      for(int j=0; j<closest.size(); j++){
-          if(j > 0) fputc(' ', fout);
-          fprintf(fout, "%s", keys[ closest[j] ].c_str());
-      }
-        
-      fputc( '\t', fout);
-      for(int j=0; j<distances.size(); j++){
-          if(j > 0) fputc(' ', fout);
-          fprintf(fout, "%g", distances[j]);
-      }
-      fputc('\n', fout);
 
-      closest.clear(); 
-      distances.clear();
+  OutputSimilar(t, keys, fout, oldgroupkey);
 
-      if((i+1) % logtimes == 0){
-        fprintf(stderr, "search %lld items.\n", i + 1);
-    }
-  }
+
+  
 
   delete[] buff;
 }
@@ -148,6 +186,7 @@ int main(int argc, char **argv){
   if ((i = ArgPos((char *)"-input", argc, argv)) > 0) strncpy(input, argv[i+1], 256);
   if ((i = ArgPos((char *)"-output", argc, argv)) > 0) strncpy(output, argv[i+1], 256);
   if ((i = ArgPos((char *)"-distance", argc, argv)) > 0) strncpy(distance, argv[i+1], 256);
+  if ((i = ArgPos((char *)"-groupbykey", argc, argv)) > 0) groupbykey = atoi(argv[i + 1]);
 
   if(!strcmp(distance, "angular")) {
     RunVectorIndex<Angular>();
